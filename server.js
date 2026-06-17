@@ -107,6 +107,6 @@ app.post('/api/return', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(RENDER_PORT, () => {
+    console.log(`Server running on port ${RENDER_PORT}`);
 });
