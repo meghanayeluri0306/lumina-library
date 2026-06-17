@@ -106,7 +106,7 @@ app.post('/api/return', (req, res) => {
     res.json({ message: "All tokens are already available.", book: book });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(RENDER_PORT, () => {
-    console.log(`Server running on port ${RENDER_PORT}`);
+const serverPort = process.env.PORT || 5000;
+app.listen(serverPort, "0.0.0.0", () => {
+    console.log(`Server running perfectly on port ${serverPort}`);
 });
