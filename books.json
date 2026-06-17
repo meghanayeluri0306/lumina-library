@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "title": "Natural Language Processing with Transformers",
+    "subject": "Generative AI & NLP",
+    "totalTokens": 8,
+    "availableTokens": 8,
+    "waitingList": [],
+    "contentUrl": "https://huggingface.co/learn/nlp-course"
+  },
+  {
+    "id": "2",
+    "title": "Compiler Design & R23 System Architecture",
+    "subject": "Core Systems",
+    "totalTokens": 6,
+    "availableTokens": 6,
+    "waitingList": [],
+    "contentUrl": "https://www.geeksforgeeks.org/introduction-of-compiler-design/"
+  },
+  {
+    "id": "3",
+    "title": "Full-Stack Development with MERN & Java Architecture",
+    "subject": "Web Engineering",
+    "totalTokens": 10,
+    "availableTokens": 10,
+    "waitingList": [],
+    "contentUrl": "https://javascript.info/"
+  },
+  {
+    "id": "4",
+    "title": "Microprocessors & Embedded Systems Protocols",
+    "subject": "Core Systems",
+    "totalTokens": 6,
+    "availableTokens": 6,
+    "waitingList": [],
+    "contentUrl": "https://www.tutorialspoint.com/microprocessor/index.htm"
+  },
+  {
+    "id": "5",
+    "title": "Augmented Reality Development with WebVR & A-Frame",
+    "subject": "Spatial Computing",
+    "totalTokens": 5,
+    "availableTokens": 5,
+    "waitingList": [],
+    "contentUrl": "https://aframe.io/docs/1.5.0/introduction/"
+  },
+  {
+    "id": "6",
+    "title": "Advanced Algorithmic Design Patterns",
+    "subject": "Computer Science",
+    "totalTokens": 12,
+    "availableTokens": 12,
+    "waitingList": [],
+    "contentUrl": "https://www.geeksforgeeks.org/data-structures/"
+  },
+  {
+    "id": "7",
+    "title": "Cloud Computing Infrastructure & Virtualization",
+    "subject": "Cloud Engineering",
+    "totalTokens": 6,
+    "availableTokens": 6,
+    "waitingList": [],
+    "contentUrl": "https://aws.amazon.com/what-is-cloud-computing/"
+  },
+  {
+    "id": "8",
+    "title": "Cyber Security Principles & Cryptography Essentials",
+    "subject": "Network Security",
+    "totalTokens": 5,
+    "availableTokens": 5,
+    "waitingList": [],
+    "contentUrl": "https://www.tutorialspoint.com/cryptography/index.htm"
+  }
+]
