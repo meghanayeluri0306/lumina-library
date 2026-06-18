@@ -1,27 +1,26 @@
 const express = require('express');
 const fs = require('fs');
+const cors = require('cors'); // Moved cors up
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-// Middleware to allow our server to understand JSON data
+app.use(cors()); 
 app.use(express.json());
 
-// Helper function to read books from our JSON "database"
+// Helper function to read books
 const readBooksData = () => {
     const data = fs.readFileSync('./books.json', 'utf-8');
     return JSON.parse(data);
 };
 
-// Helper function to write updated books back to our JSON file
+// Helper function to write books
 const writeBooksData = (data) => {
     fs.writeFileSync('./books.json', JSON.stringify(data, null, 2));
 };
-const cors = require('cors');
-app.use(cors()); // Add this before your routes
 
 // --- API ROUTES ---
 
-// Route 1: Get all books (Used by both React and Flutter)
+// Route 1: Get all books
 app.get('/api/books', (req, res) => {
     try {
         const books = readBooksData();
@@ -31,22 +30,33 @@ app.get('/api/books', (req, res) => {
     }
 });
 
-// Route 2: Borrow a book & manage Tokens / Waitlist (Your Unique Feature!)
+// Route 2: Borrow a book (🌟 ADDED 1-TOPIC LIMIT LOGIC 🌟)
 app.post('/api/borrow', (req, res) => {
     const { bookId, username } = req.body;
     let books = readBooksData();
     
-    // Find the book the user wants to borrow
-    let book = books.find(b => b.id === bookId);
+    // 🌟 1. ముందుగా ఈ యూజర్ దగ్గర ఆల్రెడీ వేరే బుక్ ఉందేమో చెక్ చేస్తున్నాం
+    let currentlyBorrowedBook = books.find(b => (b.activeBorrowers || []).includes(username));
     
-    if (!book) {
-        return res.status(404).json({ message: "Book not found" });
+    if (currentlyBorrowedBook) {
+        // ఆల్రెడీ బుక్ ఉంటే, ఎర్రర్ పంపిస్తాం (వేరేది తీసుకోనివ్వము)
+        return res.status(403).json({ 
+            status: "LIMIT_REACHED",
+            message: `You already have an active resource: "${currentlyBorrowedBook.title}". You must return it before borrowing another one.` 
+        });
     }
 
-    // UNIQUE LOGIC: Check if tokens are available
+    // 🌟 2. లేకపోతే మామూలుగా బుక్ కోసం వెతుకుతాం
+    let book = books.find(b => b.id === bookId);
+    if (!book) return res.status(404).json({ message: "Book not found" });
+
+    // Arrays లేకపోతే క్రియేట్ చేస్తాం (Safety check)
+    book.activeBorrowers = book.activeBorrowers || [];
+    book.waitingList = book.waitingList || [];
+
     if (book.availableTokens > 0) {
-        // Reduce available tokens by 1 because this user successfully borrowed it
         book.availableTokens -= 1;
+        book.activeBorrowers.push(username); // యూజర్ పేరుని లిస్ట్ లో సేవ్ చేస్తున్నాం
         writeBooksData(books);
         return res.json({ 
             status: "SUCCESS", 
@@ -54,15 +64,11 @@ app.post('/api/borrow', (req, res) => {
             book: book
         });
     } else {
-        // NO TOKENS LEFT: Add user to the waiting list queue automatically
         if (!book.waitingList.includes(username)) {
             book.waitingList.push(username);
             writeBooksData(books);
         }
-        
-        // Calculate position in the queue
         const position = book.waitingList.indexOf(username) + 1;
-        
         return res.json({ 
             status: "WAITLISTED", 
             message: `No tokens available. You have been added to the waiting list.`,
@@ -71,19 +77,24 @@ app.post('/api/borrow', (req, res) => {
         });
     }
 });
-// Route 3: Return a book & release tokens to waitlisted users
+
+// Route 3: Return a book (🌟 UPDATED TO REMOVE USER 🌟)
 app.post('/api/return', (req, res) => {
-    const { bookId } = req.body;
+    const { bookId, username } = req.body; // ఇప్పుడు ఎవరు రిటర్న్ చేస్తున్నారో కూడా తీసుకుంటున్నాం
     let books = readBooksData();
     let book = books.find(b => b.id === bookId);
 
-    if (!book) {
-        return res.status(404).json({ message: "Book not found" });
-    }
+    if (!book) return res.status(404).json({ message: "Book not found" });
 
-    // If there's someone waiting in the queue, give the token to them immediately!
+    book.activeBorrowers = book.activeBorrowers || [];
+    book.waitingList = book.waitingList || [];
+
+    // 🌟 బుక్ రిటర్న్ చేయగానే యూజర్ పేరుని ఆ లిస్ట్ నుండి తీసేస్తున్నాం
+    book.activeBorrowers = book.activeBorrowers.filter(user => user !== username);
+
     if (book.waitingList.length > 0) {
-        const nextUser = book.waitingList.shift(); // Remove first user from queue
+        const nextUser = book.waitingList.shift(); 
+        book.activeBorrowers.push(nextUser); // వెయిటింగ్ లో ఉన్న వాళ్ళకి బుక్ ఇచ్చి, వాళ్ళ పేరు రాస్తున్నాం
         writeBooksData(books);
         return res.json({
             status: "PASSED_TO_QUEUE",
@@ -92,7 +103,6 @@ app.post('/api/return', (req, res) => {
         });
     } 
     
-    // If no one is waiting, just increase the available tokens back up
     if (book.availableTokens < book.totalTokens) {
         book.availableTokens += 1;
         writeBooksData(books);
@@ -106,7 +116,6 @@ app.post('/api/return', (req, res) => {
     res.json({ message: "All tokens are already available.", book: book });
 });
 
-const serverPort = process.env.PORT || 5000;
-app.listen(serverPort, "0.0.0.0", () => {
-    console.log(`Server running perfectly on port ${serverPort}`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running perfectly on port ${PORT}`);
 });
